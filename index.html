@@ -81,46 +81,32 @@
     transition: all .4s ease;
   }
 
-  /* FlowCore logo lockup */
+  /* FlowCore logo — official logo image, cream version for dark backgrounds */
+  /* Data URI embedded once and reused via .logo-img sizing class. */
   .logo-lockup{
     display: flex;
     align-items: center;
-    gap: 12px;
     text-decoration: none;
   }
-  .logo-mark{
-    width: 44px;
-    height: 44px;
+  .logo-svg{
+    display: block;
+    height: 56px;
+    width: auto;
     flex-shrink: 0;
+    filter: drop-shadow(0 0 14px rgba(168,200,220,0.12));
   }
-  .logo-lockup .logo-mark{
-    filter: drop-shadow(0 0 12px rgba(168,200,220,0.15));
-  }
-  .logo-type{
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-  }
-  .logo-type .logo-word{
+  .logo-svg .fc-word{
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
     font-style: italic;
-    font-size: 22px;
-    letter-spacing: -0.015em;
-    color: var(--cream);
+    fill: #F3EFE6;
   }
-  .logo-type .logo-word .f-light{
-    font-weight: 400;
-    font-style: italic;
-  }
-  .logo-type .logo-tag{
-    font-family: 'Archivo', sans-serif;
-    font-weight: 500;
-    font-size: 8px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--aqua);
-    margin-top: 4px;
+  .logo-svg .fc-word-l{ font-weight: 400; }
+  .logo-svg .fc-tag{
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    fill: #F3EFE6;
   }
   nav.top ul{
     display: flex;
@@ -186,22 +172,11 @@
     margin-bottom: 60px;
     display: flex;
     align-items: center;
-    gap: 18px;
     opacity: 0;
     animation: fadeUp 1.2s ease .1s forwards;
   }
-  .hero .hero-logo .logo-mark{
-    width: 72px;
-    height: 72px;
-  }
-  .hero .hero-logo .logo-word{
-    font-size: 40px;
-    letter-spacing: -0.02em;
-  }
-  .hero .hero-logo .logo-tag{
-    font-size: 10px;
-    letter-spacing: 0.32em;
-    color: var(--sage-bright);
+  .hero .hero-logo .logo-svg{
+    height: 140px;
   }
   .hero .eyebrow{
     font-family: 'JetBrains Mono', monospace;
@@ -1003,39 +978,41 @@
 </div>
 
 <nav class="top">
-  <a href="#" class="logo-lockup">
-    <!-- FlowCore wave mark — circular water/wave emblem -->
-    <svg class="logo-mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore">
-      <defs>
-        <clipPath id="circleClip">
-          <circle cx="60" cy="60" r="52" />
-        </clipPath>
-      </defs>
-      <!-- Outer circle -->
-      <circle cx="60" cy="60" r="52" fill="none" stroke="#A8C8DC" stroke-width="2.2"/>
-      <!-- Clip inner content to circle -->
-      <g clip-path="url(#circleClip)">
-        <!-- Sage crest wave (top cresting wave) -->
-        <path d="M 2 62 Q 30 32, 60 48 T 118 40 L 118 2 L 2 2 Z" fill="#8FB896" opacity="0.85"/>
-        <!-- Sage wave edge highlight -->
-        <path d="M 2 62 Q 30 32, 60 48 T 118 40" fill="none" stroke="#A5C9A8" stroke-width="1.5"/>
-        <!-- Blue water body (bottom) with curves -->
-        <path d="M 2 72 Q 20 66, 38 72 T 72 72 T 118 68 L 118 120 L 2 120 Z" fill="#1A3478"/>
-        <!-- Water wave detail line 1 -->
-        <path d="M 2 80 Q 22 75, 42 80 T 78 80 T 118 76" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.7"/>
-        <!-- Water wave detail line 2 -->
-        <path d="M 2 90 Q 24 85, 46 90 T 82 90 T 118 86" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.5"/>
-        <!-- Bubbles -->
-        <circle cx="86" cy="66" r="3.2" fill="#A8C8DC"/>
-        <circle cx="96" cy="72" r="2.2" fill="#A8C8DC"/>
-        <circle cx="100" cy="64" r="2.5" fill="#A8C8DC"/>
-        <circle cx="92" cy="58" r="1.8" fill="#A8C8DC" opacity="0.8"/>
-      </g>
-    </svg>
-    <div class="logo-type">
-      <span class="logo-word"><span class="f-light">Flow</span>Core</span>
-      <span class="logo-tag">Technical Solutions Ltd</span>
-    </div>
+  <a href="#" class="logo-lockup" aria-label="FlowCore Technical Solutions Ltd">
+    <svg class="logo-svg" viewBox="0 0 1093 745" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore Technical Solutions Ltd">
+  <defs>
+    <clipPath id="fcCircleClip">
+      <circle cx="375" cy="290" r="220"/>
+    </clipPath>
+  </defs>
+  <!-- Wave mark watermark (sits behind wordmark, upper-left) -->
+  <g opacity="0.55">
+    <!-- Faint outer ring -->
+    <circle cx="375" cy="290" r="220" fill="none" stroke="#A8C8DC" stroke-width="6"/>
+    <g clip-path="url(#fcCircleClip)">
+      <!-- Sage crescent wave crest -->
+      <path d="M 155 322 Q 250 130, 420 215 Q 510 260, 595 220 L 595 70 L 155 70 Z"
+            fill="#8FB896" opacity="0.75"/>
+      <path d="M 155 322 Q 250 130, 420 215 Q 510 260, 595 220"
+            fill="none" stroke="#A5C9A8" stroke-width="3" opacity="0.85"/>
+      <!-- Bubbles in middle-right -->
+      <circle cx="445" cy="310" r="10" fill="#A8C8DC"/>
+      <circle cx="470" cy="335" r="8" fill="#A8C8DC"/>
+      <circle cx="495" cy="305" r="9" fill="#A8C8DC" opacity="0.9"/>
+      <circle cx="460" cy="290" r="6" fill="#A8C8DC" opacity="0.85"/>
+      <circle cx="510" cy="325" r="5" fill="#A8C8DC" opacity="0.75"/>
+      <circle cx="430" cy="285" r="4" fill="#A8C8DC" opacity="0.7"/>
+    </g>
+  </g>
+  <!-- FlowCore wordmark (in front) -->
+  <text class="fc-word" x="546" y="490" font-size="220" text-anchor="middle">
+    <tspan class="fc-word-l">Flow</tspan>Core
+  </text>
+  <!-- Tagline -->
+  <text class="fc-tag" x="546" y="595" font-size="56" text-anchor="middle">
+    TECHNICAL  SOLUTIONS  LTD
+  </text>
+</svg>
   </a>
   <ul>
     <li><a href="#intro">About</a></li>
@@ -1066,29 +1043,40 @@
     </div>
     <div class="hero-inner">
       <div class="hero-logo">
-        <svg class="logo-mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore">
-          <defs>
-            <clipPath id="heroCircleClip">
-              <circle cx="60" cy="60" r="52" />
-            </clipPath>
-          </defs>
-          <circle cx="60" cy="60" r="52" fill="none" stroke="#A8C8DC" stroke-width="2.2"/>
-          <g clip-path="url(#heroCircleClip)">
-            <path d="M 2 62 Q 30 32, 60 48 T 118 40 L 118 2 L 2 2 Z" fill="#8FB896" opacity="0.85"/>
-            <path d="M 2 62 Q 30 32, 60 48 T 118 40" fill="none" stroke="#A5C9A8" stroke-width="1.5"/>
-            <path d="M 2 72 Q 20 66, 38 72 T 72 72 T 118 68 L 118 120 L 2 120 Z" fill="#1A3478"/>
-            <path d="M 2 80 Q 22 75, 42 80 T 78 80 T 118 76" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.7"/>
-            <path d="M 2 90 Q 24 85, 46 90 T 82 90 T 118 86" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.5"/>
-            <circle cx="86" cy="66" r="3.2" fill="#A8C8DC"/>
-            <circle cx="96" cy="72" r="2.2" fill="#A8C8DC"/>
-            <circle cx="100" cy="64" r="2.5" fill="#A8C8DC"/>
-            <circle cx="92" cy="58" r="1.8" fill="#A8C8DC" opacity="0.8"/>
-          </g>
-        </svg>
-        <div class="logo-type">
-          <span class="logo-word"><span class="f-light">Flow</span>Core</span>
-          <span class="logo-tag">Technical Solutions Ltd</span>
-        </div>
+        <svg class="logo-svg" viewBox="0 0 1093 745" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore Technical Solutions Ltd">
+  <defs>
+    <clipPath id="fcCircleClip">
+      <circle cx="375" cy="290" r="220"/>
+    </clipPath>
+  </defs>
+  <!-- Wave mark watermark (sits behind wordmark, upper-left) -->
+  <g opacity="0.55">
+    <!-- Faint outer ring -->
+    <circle cx="375" cy="290" r="220" fill="none" stroke="#A8C8DC" stroke-width="6"/>
+    <g clip-path="url(#fcCircleClip)">
+      <!-- Sage crescent wave crest -->
+      <path d="M 155 322 Q 250 130, 420 215 Q 510 260, 595 220 L 595 70 L 155 70 Z"
+            fill="#8FB896" opacity="0.75"/>
+      <path d="M 155 322 Q 250 130, 420 215 Q 510 260, 595 220"
+            fill="none" stroke="#A5C9A8" stroke-width="3" opacity="0.85"/>
+      <!-- Bubbles in middle-right -->
+      <circle cx="445" cy="310" r="10" fill="#A8C8DC"/>
+      <circle cx="470" cy="335" r="8" fill="#A8C8DC"/>
+      <circle cx="495" cy="305" r="9" fill="#A8C8DC" opacity="0.9"/>
+      <circle cx="460" cy="290" r="6" fill="#A8C8DC" opacity="0.85"/>
+      <circle cx="510" cy="325" r="5" fill="#A8C8DC" opacity="0.75"/>
+      <circle cx="430" cy="285" r="4" fill="#A8C8DC" opacity="0.7"/>
+    </g>
+  </g>
+  <!-- FlowCore wordmark (in front) -->
+  <text class="fc-word" x="546" y="490" font-size="220" text-anchor="middle">
+    <tspan class="fc-word-l">Flow</tspan>Core
+  </text>
+  <!-- Tagline -->
+  <text class="fc-tag" x="546" y="595" font-size="56" text-anchor="middle">
+    TECHNICAL  SOLUTIONS  LTD
+  </text>
+</svg>
       </div>
       <div class="eyebrow">CIPP Lining Specialists</div>
       <h1>
