@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowCore Technical Solutions — UV CIPP Specialists</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Archivo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep: #050E24;
+    --navy: #0C1F4A;
+    --navy-brand: #1A3478;        /* primary navy from logo */
+    --navy-mid: #2B4A96;          /* lighter navy for depth */
+    --navy-light: #5878B8;
+    --sage: #8FB896;              /* sage green from logo "Director" */
+    --sage-bright: #A8CEA8;
+    --sage-soft: #C5D9C5;
+    --aqua: #A8C8DC;              /* light blue from wave mark */
+    --uv-violet: #7B2FBE;         /* kept only for 3D UV realism */
+    --uv-glow: #B388F5;
+    --cream: #F3EFE6;
+    --bone: #E8E2D4;
+    --graphite: #1C1E26;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth; background:#000;}
+  body{
+    font-family: 'Archivo', sans-serif;
+    color: var(--cream);
+    background: var(--navy-deep);
+    overflow-x: hidden;
+    line-height:1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Fixed Three.js canvas */
+  #pipe-canvas{
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: block;
+  }
+
+  /* Vignette over canvas */
+  .vignette{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(5,14,36,0.55) 100%),
+      radial-gradient(ellipse at center, transparent 70%, rgba(5,14,36,0.85) 100%);
+    mix-blend-mode: multiply;
+  }
+  .grain{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* Top navigation */
+  nav.top{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    background: linear-gradient(180deg, rgba(5,14,36,0.65), rgba(5,14,36,0));
+    transition: all .4s ease;
+  }
+
+  /* FlowCore logo lockup */
+  .logo-lockup{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .logo-mark{
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .logo-lockup .logo-mark{
+    filter: drop-shadow(0 0 12px rgba(168,200,220,0.15));
+  }
+  .logo-type{
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .logo-type .logo-word{
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 22px;
+    letter-spacing: -0.015em;
+    color: var(--cream);
+  }
+  .logo-type .logo-word .f-light{
+    font-weight: 400;
+    font-style: italic;
+  }
+  .logo-type .logo-tag{
+    font-family: 'Archivo', sans-serif;
+    font-weight: 500;
+    font-size: 8px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--aqua);
+    margin-top: 4px;
+  }
+  nav.top ul{
+    display: flex;
+    gap: 28px;
+    list-style: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  nav.top ul a{
+    color: var(--cream);
+    text-decoration: none;
+    opacity: 0.75;
+    transition: opacity .3s, color .3s;
+    position: relative;
+    padding-bottom: 3px;
+  }
+  nav.top ul a:hover{
+    opacity: 1;
+    color: var(--sage-bright);
+  }
+  nav.top ul a::after{
+    content:'';
+    position: absolute;
+    bottom:0; left:0;
+    width:0; height:1px;
+    background: var(--sage-bright);
+    transition: width .3s ease;
+  }
+  nav.top ul a:hover::after{ width:100%; }
+
+  /* Content wrapper */
+  main{
+    position: relative;
+    z-index: 10;
+  }
+
+  section{
+    min-height: 100vh;
+    position: relative;
+    padding: 120px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* HERO */
+  .hero{
+    min-height: 100vh;
+    padding: 0 40px;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+  }
+  .hero-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    padding-bottom: 80px;
+  }
+  .hero .hero-logo{
+    margin-bottom: 60px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease .1s forwards;
+  }
+  .hero .hero-logo .logo-mark{
+    width: 72px;
+    height: 72px;
+  }
+  .hero .hero-logo .logo-word{
+    font-size: 40px;
+    letter-spacing: -0.02em;
+  }
+  .hero .hero-logo .logo-tag{
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--sage-bright);
+  }
+  .hero .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    color: var(--sage-bright);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease .3s forwards;
+  }
+  .hero .eyebrow::before{
+    content:'';
+    width: 40px; height: 1px;
+    background: var(--sage-bright);
+    opacity: 0.7;
+  }
+  .hero h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(48px, 9vw, 148px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    color: var(--cream);
+    margin-bottom: 28px;
+  }
+  .hero h1 .line{
+    display: block;
+    overflow: hidden;
+  }
+  .hero h1 .line span{
+    display: block;
+    transform: translateY(100%);
+    animation: rise 1.1s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .hero h1 .line:nth-child(1) span{ animation-delay: .4s; }
+  .hero h1 .line:nth-child(2) span{ animation-delay: .55s; }
+  .hero h1 .line:nth-child(3) span{ animation-delay: .7s; }
+  .hero h1 em{
+    font-style: italic;
+    font-weight: 400;
+    color: var(--sage-bright);
+    position: relative;
+  }
+  .hero h1 em::after{
+    content:'';
+    position: absolute;
+    left: 0; right: 0; bottom: 4px;
+    height: 1px;
+    background: var(--sage-bright);
+    opacity: 0.4;
+  }
+  .hero .sub{
+    max-width: 620px;
+    font-size: 18px;
+    line-height: 1.55;
+    color: rgba(243,239,230,0.75);
+    font-weight: 300;
+    margin-top: 40px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.3s forwards;
+  }
+
+  .scroll-cue{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 0 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: rgba(243,239,230,0.55);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.6s forwards;
+  }
+  .scroll-cue .line-anim{
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sage-bright), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2.4s linear infinite;
+  }
+  @keyframes shimmer{
+    0%{ background-position: 200% 0; }
+    100%{ background-position: -200% 0; }
+  }
+
+  @keyframes rise{
+    to{ transform: translateY(0); }
+  }
+  @keyframes fadeUp{
+    from{ opacity: 0; transform: translateY(16px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* Specs strip — floating data */
+  .specs-strip{
+    position: absolute;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(168,200,220,0.85);
+    text-align: right;
+    z-index: 5;
+    opacity: 0;
+    animation: fadeUp 1.2s ease 1.8s forwards;
+  }
+  .specs-strip div{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .specs-strip .label{
+    opacity: 0.5;
+    font-size: 9px;
+  }
+  .specs-strip .value{
+    color: var(--cream);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* Section: INTRO */
+  .intro{
+    background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(5,18,43,0.92) 30%,
+      rgba(5,18,43,0.96) 100%);
+    padding: 180px 40px 160px;
+  }
+  .intro-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 80px;
+  }
+  .section-label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sage-bright);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .section-label .num{
+    color: rgba(243,239,230,0.4);
+    font-size: 11px;
+  }
+  .intro h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(36px, 5vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    margin-bottom: 32px;
+  }
+  .intro h2 em{
+    font-style: italic;
+    color: var(--sage-bright);
+    font-weight: 400;
+  }
+  .intro .body-text{
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(243,239,230,0.75);
+    font-weight: 300;
+    max-width: 560px;
+  }
+  .intro .body-text p + p{ margin-top: 20px; }
+  .intro .pull{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--sage-bright);
+    margin-top: 40px;
+    padding-left: 20px;
+    border-left: 1px solid rgba(143,184,150,0.5);
+  }
+
+  /* STATS */
+  .stats{
+    padding: 80px 40px;
+    border-top: 1px solid rgba(143,184,150,0.18);
+    border-bottom: 1px solid rgba(143,184,150,0.18);
+    background: rgba(5,14,36,0.94);
+  }
+  .stats-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+  }
+  .stat{
+    border-left: 1px solid rgba(168,200,220,0.25);
+    padding-left: 20px;
+  }
+  .stat .big{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 54px;
+    line-height: 1;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+  .stat .big em{
+    font-style: italic;
+    color: var(--sage-bright);
+    font-weight: 400;
+  }
+  .stat .lbl{
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(243,239,230,0.55);
+  }
+
+  /* SERVICES */
+  .services{
+    padding: 180px 40px;
+    background: linear-gradient(180deg, rgba(5,14,36,0.96), rgba(5,14,36,0.6));
+  }
+  .services-head{
+    max-width: 1400px;
+    margin: 0 auto 80px;
+  }
+  .services h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(40px, 6vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    color: var(--cream);
+    max-width: 14ch;
+  }
+  .services h2 em{
+    font-style: italic;
+    color: var(--sage-bright);
+    font-weight: 400;
+  }
+  .services-grid{
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: rgba(143,184,150,0.18);
+    border: 1px solid rgba(143,184,150,0.18);
+  }
+  .service-card{
+    background: rgba(5,14,36,0.88);
+    padding: 48px 40px 40px;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+    position: relative;
+    transition: background .5s ease;
+  }
+  .service-card:hover{
+    background: rgba(26,52,120,0.92);
+  }
+  .service-card:hover .service-num{
+    color: var(--sage-bright);
+  }
+  .service-num{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(168,200,220,0.55);
+    margin-bottom: 60px;
+    transition: color .4s ease;
+  }
+  .service-card h3{
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    color: var(--cream);
+    margin-bottom: 24px;
+  }
+  .service-card h3 em{ font-style: italic; color: var(--sage-bright); }
+  .service-card p{
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(243,239,230,0.7);
+    font-weight: 300;
+    margin-bottom: auto;
+    padding-bottom: 40px;
+  }
+  .service-card .tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .service-card .tag{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(168,200,220,0.8);
+    padding: 5px 10px;
+    border: 1px solid rgba(168,200,220,0.3);
+    border-radius: 2px;
+  }
+
+  /* UV Reveal */
+  .uv-reveal{
+    min-height: 120vh;
+    padding: 200px 40px;
+    position: relative;
+  }
+  .uv-reveal-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .uv-reveal .giant{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(64px, 14vw, 240px);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    color: var(--cream);
+    text-align: center;
+    text-shadow: 0 0 60px rgba(143,184,150,0.5);
+  }
+  .uv-reveal .giant em{
+    font-style: italic;
+    font-weight: 400;
+    color: var(--sage-bright);
+    display: block;
+  }
+  .uv-reveal .caption{
+    max-width: 560px;
+    margin: 80px auto 0;
+    text-align: center;
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(243,239,230,0.75);
+    font-weight: 300;
+  }
+  .uv-reveal .specs{
+    max-width: 1000px;
+    margin: 100px auto 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    padding: 40px 0;
+    border-top: 1px solid rgba(143,184,150,0.3);
+    border-bottom: 1px solid rgba(143,184,150,0.3);
+  }
+  .uv-reveal .specs .spec{
+    text-align: left;
+  }
+  .uv-reveal .specs .spec .k{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--sage-bright);
+    margin-bottom: 8px;
+  }
+  .uv-reveal .specs .spec .v{
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--cream);
+    letter-spacing: -0.01em;
+  }
+
+  /* Also-supports strip under UV reveal */
+  .also-supports{
+    max-width: 1000px;
+    margin: 56px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+    text-align: center;
+  }
+  .also-supports .as-label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    color: var(--sage-bright);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .also-supports .as-label::before,
+  .also-supports .as-label::after{
+    content:'';
+    width: 28px; height: 1px;
+    background: rgba(143,184,150,0.5);
+  }
+  .also-supports .as-text{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 19px;
+    line-height: 1.45;
+    color: rgba(243,239,230,0.78);
+    max-width: 640px;
+  }
+  .also-supports .as-text strong{
+    font-style: normal;
+    font-weight: 500;
+    color: var(--cream);
+  }
+  @media (max-width: 900px){
+    .also-supports{ margin-top: 40px; }
+    .also-supports .as-text{ font-size: 16px; }
+  }
+
+  /* APPROACH */
+  .approach{
+    padding: 180px 40px;
+    background: linear-gradient(180deg, rgba(5,14,36,0.5), rgba(5,14,36,0.95));
+  }
+  .approach-inner{
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .approach h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--cream);
+    margin-bottom: 80px;
+    max-width: 16ch;
+  }
+  .approach h2 em{
+    font-style: italic;
+    color: var(--sage-bright);
+    font-weight: 400;
+  }
+  .approach-list{
+    display: flex;
+    flex-direction: column;
+  }
+  .approach-item{
+    display: grid;
+    grid-template-columns: 120px 1fr 2fr;
+    gap: 40px;
+    padding: 40px 0;
+    border-top: 1px solid rgba(143,184,150,0.2);
+    align-items: start;
+    transition: all .4s ease;
+  }
+  .approach-item:last-child{
+    border-bottom: 1px solid rgba(143,184,150,0.2);
+  }
+  .approach-item:hover{
+    padding-left: 20px;
+  }
+  .approach-item:hover .ai-num{
+    color: var(--sage-bright);
+  }
+  .ai-num{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: rgba(243,239,230,0.4);
+    padding-top: 6px;
+    transition: color .4s ease;
+  }
+  .ai-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.1;
+    color: var(--cream);
+    letter-spacing: -0.015em;
+  }
+  .ai-title em{ font-style: italic; color: var(--sage-bright); }
+  .ai-body{
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(243,239,230,0.7);
+    font-weight: 300;
+  }
+
+  /* CONTACT */
+  .contact{
+    padding: 180px 40px 100px;
+    background: linear-gradient(180deg, rgba(5,14,36,0.95), rgba(5,14,36,1));
+    position: relative;
+  }
+  .contact-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .contact-grid{
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .contact h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(44px, 7vw, 112px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    color: var(--cream);
+    margin-bottom: 40px;
+  }
+  .contact h2 em{
+    font-style: italic;
+    font-weight: 400;
+    color: var(--sage-bright);
+  }
+  .contact p.lead{
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(243,239,230,0.75);
+    font-weight: 300;
+    max-width: 520px;
+  }
+
+  .director-card{
+    background: linear-gradient(135deg, rgba(143,184,150,0.1), rgba(26,52,120,0.15));
+    border: 1px solid rgba(143,184,150,0.25);
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .director-card::before{
+    content:'';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(143,184,150,0.22), transparent 70%);
+    filter: blur(20px);
+  }
+  .director-card::after{
+    content:'';
+    position: absolute;
+    bottom: -100px; left: -80px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(168,200,220,0.15), transparent 70%);
+    filter: blur(24px);
+  }
+  .director-card .role{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sage-bright);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .director-card .name{
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+  }
+  .director-card .divider{
+    height: 1px;
+    background: rgba(143,184,150,0.3);
+    margin: 32px 0;
+    position: relative;
+    z-index: 2;
+  }
+  .contact-row{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    text-decoration: none;
+    color: var(--cream);
+    transition: color .3s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .contact-row:hover{
+    color: var(--sage-bright);
+  }
+  .contact-row .icon{
+    width: 38px; height: 38px;
+    border: 1px solid rgba(143,184,150,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(143,184,150,0.06);
+  }
+  .contact-row svg{
+    width: 14px; height: 14px;
+    stroke: var(--sage-bright);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .contact-row .label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(243,239,230,0.5);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .contact-row .value{
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+
+  /* FOOTER */
+  footer{
+    padding: 40px;
+    background: var(--navy-deep);
+    position: relative;
+    z-index: 10;
+    border-top: 1px solid rgba(143,184,150,0.15);
+  }
+  .footer-inner{
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(243,239,230,0.4);
+  }
+  .footer-inner .mark{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--sage-bright);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Mobile */
+  @media (max-width: 900px){
+    nav.top{ padding: 16px 20px; }
+    nav.top ul{ display: none; }
+    section{ padding: 100px 20px; }
+    .hero{ padding: 0 20px; }
+    .hero-inner{ padding-bottom: 60px; }
+    .specs-strip{ display: none; }
+    .intro{ padding: 120px 20px; }
+    .intro-inner{
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .stats{ padding: 60px 20px; }
+    .stats-inner{ grid-template-columns: repeat(2, 1fr); gap: 30px; }
+    .stat .big{ font-size: 42px; }
+    .services{ padding: 120px 20px; }
+    .services-grid{ grid-template-columns: 1fr; }
+    .service-card{ min-height: auto; padding: 36px 28px 32px;}
+    .uv-reveal{ padding: 120px 20px; }
+    .uv-reveal .specs{
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .approach{ padding: 120px 20px; }
+    .approach-item{
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .approach-item:hover{ padding-left: 0; }
+    .contact{ padding: 120px 20px 80px; }
+    .contact-grid{
+      grid-template-columns: 1fr;
+      gap: 60px;
+    }
+    .director-card{ padding: 36px 28px; }
+    .director-card .name{ font-size: 34px; }
+    .contact-row .value{ font-size: 16px; word-break: break-all; }
+  }
+
+  /* Decorative corner marks */
+  .corner{
+    position: fixed;
+    width: 14px; height: 14px;
+    border-color: rgba(168,200,220,0.5);
+    z-index: 30;
+    pointer-events: none;
+  }
+  .corner.tl{ top: 16px; left: 16px; border-top:1px solid; border-left:1px solid; }
+  .corner.tr{ top: 16px; right: 16px; border-top:1px solid; border-right:1px solid; }
+  .corner.bl{ bottom: 16px; left: 16px; border-bottom:1px solid; border-left:1px solid; }
+  .corner.br{ bottom: 16px; right: 16px; border-bottom:1px solid; border-right:1px solid; }
+  @media (max-width: 900px){ .corner{ display: none; } }
+
+  /* Scroll progress line */
+  .progress-line{
+    position: fixed;
+    left: 0; top: 0;
+    width: 2px;
+    height: 100vh;
+    background: rgba(168,200,220,0.1);
+    z-index: 30;
+    pointer-events: none;
+  }
+  .progress-line .fill{
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(180deg, var(--sage-bright), var(--navy-brand));
+    box-shadow: 0 0 10px var(--sage-bright);
+  }
+  @media (max-width: 900px){ .progress-line{ display: none; } }
+
+  /* Depth meter - fixed right side showing progress through pipe */
+  .depth-meter{
+    position: fixed;
+    right: 20px;
+    bottom: 40px;
+    z-index: 30;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(168,200,220,0.85);
+    text-align: right;
+    pointer-events: none;
+  }
+  .depth-meter .k{
+    opacity: 0.55;
+    font-size: 9px;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .depth-meter .v{
+    font-size: 14px;
+    color: var(--cream);
+    font-weight: 500;
+  }
+  @media (max-width: 900px){ .depth-meter{ display: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="pipe-canvas"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="progress-line"><div class="fill" id="progFill"></div></div>
+<div class="depth-meter">
+  <span class="k">Chainage</span>
+  <span class="v" id="depthValue">0.0 m</span>
+</div>
+
+<nav class="top">
+  <a href="#" class="logo-lockup">
+    <!-- FlowCore wave mark — circular water/wave emblem -->
+    <svg class="logo-mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore">
+      <defs>
+        <clipPath id="circleClip">
+          <circle cx="60" cy="60" r="52" />
+        </clipPath>
+      </defs>
+      <!-- Outer circle -->
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#A8C8DC" stroke-width="2.2"/>
+      <!-- Clip inner content to circle -->
+      <g clip-path="url(#circleClip)">
+        <!-- Sage crest wave (top cresting wave) -->
+        <path d="M 2 62 Q 30 32, 60 48 T 118 40 L 118 2 L 2 2 Z" fill="#8FB896" opacity="0.85"/>
+        <!-- Sage wave edge highlight -->
+        <path d="M 2 62 Q 30 32, 60 48 T 118 40" fill="none" stroke="#A5C9A8" stroke-width="1.5"/>
+        <!-- Blue water body (bottom) with curves -->
+        <path d="M 2 72 Q 20 66, 38 72 T 72 72 T 118 68 L 118 120 L 2 120 Z" fill="#1A3478"/>
+        <!-- Water wave detail line 1 -->
+        <path d="M 2 80 Q 22 75, 42 80 T 78 80 T 118 76" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.7"/>
+        <!-- Water wave detail line 2 -->
+        <path d="M 2 90 Q 24 85, 46 90 T 82 90 T 118 86" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.5"/>
+        <!-- Bubbles -->
+        <circle cx="86" cy="66" r="3.2" fill="#A8C8DC"/>
+        <circle cx="96" cy="72" r="2.2" fill="#A8C8DC"/>
+        <circle cx="100" cy="64" r="2.5" fill="#A8C8DC"/>
+        <circle cx="92" cy="58" r="1.8" fill="#A8C8DC" opacity="0.8"/>
+      </g>
+    </svg>
+    <div class="logo-type">
+      <span class="logo-word"><span class="f-light">Flow</span>Core</span>
+      <span class="logo-tag">Technical Solutions Ltd</span>
+    </div>
+  </a>
+  <ul>
+    <li><a href="#intro">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#uv">UV CIPP</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="specs-strip">
+      <div>
+        <span class="label">Technology</span>
+        <span class="value">UV CIPP</span>
+      </div>
+      <div>
+        <span class="label">Wavelength</span>
+        <span class="value">365–405 nm</span>
+      </div>
+      <div>
+        <span class="label">Sector</span>
+        <span class="value">Water / Wastewater</span>
+      </div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-logo">
+        <svg class="logo-mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="FlowCore">
+          <defs>
+            <clipPath id="heroCircleClip">
+              <circle cx="60" cy="60" r="52" />
+            </clipPath>
+          </defs>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#A8C8DC" stroke-width="2.2"/>
+          <g clip-path="url(#heroCircleClip)">
+            <path d="M 2 62 Q 30 32, 60 48 T 118 40 L 118 2 L 2 2 Z" fill="#8FB896" opacity="0.85"/>
+            <path d="M 2 62 Q 30 32, 60 48 T 118 40" fill="none" stroke="#A5C9A8" stroke-width="1.5"/>
+            <path d="M 2 72 Q 20 66, 38 72 T 72 72 T 118 68 L 118 120 L 2 120 Z" fill="#1A3478"/>
+            <path d="M 2 80 Q 22 75, 42 80 T 78 80 T 118 76" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.7"/>
+            <path d="M 2 90 Q 24 85, 46 90 T 82 90 T 118 86" fill="none" stroke="#5878B8" stroke-width="1.2" opacity="0.5"/>
+            <circle cx="86" cy="66" r="3.2" fill="#A8C8DC"/>
+            <circle cx="96" cy="72" r="2.2" fill="#A8C8DC"/>
+            <circle cx="100" cy="64" r="2.5" fill="#A8C8DC"/>
+            <circle cx="92" cy="58" r="1.8" fill="#A8C8DC" opacity="0.8"/>
+          </g>
+        </svg>
+        <div class="logo-type">
+          <span class="logo-word"><span class="f-light">Flow</span>Core</span>
+          <span class="logo-tag">Technical Solutions Ltd</span>
+        </div>
+      </div>
+      <div class="eyebrow">CIPP Lining Specialists</div>
+      <h1>
+        <span class="line"><span>Planning and</span></span>
+        <span class="line"><span>installing <em>CIPP</em></span></span>
+        <span class="line"><span><em>liners</em> across the UK.</span></span>
+      </h1>
+      <p class="sub">
+        FlowCore Technical Solutions supports contractors and asset owners on CIPP
+        lining projects — providing office-based planning, design and technical
+        advice, and attending site for complex installations.
+      </p>
+    </div>
+    <div class="scroll-cue">
+      <span>Enter the pipeline</span>
+      <div class="line-anim"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="intro" id="intro">
+    <div class="intro-inner">
+      <div>
+        <div class="section-label"><span class="num">01 /</span> About FlowCore</div>
+      </div>
+      <div>
+        <h2>Specialists in <em>CIPP lining</em>, working alongside your team.</h2>
+        <div class="body-text">
+          <p>
+            FlowCore Technical Solutions provides specialist technical expertise to
+            contractors and asset owners delivering cured-in-place pipe (CIPP)
+            lining projects.
+          </p>
+          <p>
+            We focus on one thing — planning and installing CIPP liners. UV-cured
+            liners are our lead specialism, but we also support hot cure (hot
+            water inversion) and other CIPP technologies. Most of our work is
+            office-based: design, specification, method statements and day-to-day
+            technical advice. When installations get complex, we attend site to
+            support your crew directly.
+          </p>
+        </div>
+        <div class="pull">
+          Office-based technical support, with on-site attendance for the complex jobs.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div class="stat">
+        <div class="big">DN<em>150</em></div>
+        <div class="lbl">Minimum host diameter</div>
+      </div>
+      <div class="stat">
+        <div class="big">DN<em>2000</em></div>
+        <div class="lbl">Maximum host diameter</div>
+      </div>
+      <div class="stat">
+        <div class="big">50<em>yr</em></div>
+        <div class="lbl">Design life, structural liner</div>
+      </div>
+      <div class="stat">
+        <div class="big">Zero<em>dig</em></div>
+        <div class="lbl">Trenchless, live network</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" id="services">
+    <div class="services-head">
+      <div class="section-label"><span class="num">02 /</span> Services</div>
+      <h2>Three ways we <em>support</em> CIPP installations.</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-num">/ 01</div>
+        <h3>CIPP planning <em>and design</em></h3>
+        <p>
+          Survey review, liner specification, method statements, RAMS, and
+          programme support. We help plan the install on paper — before anyone
+          goes to site — so the job runs as designed.
+        </p>
+        <div class="tags">
+          <span class="tag">Liner specification</span>
+          <span class="tag">Method statements</span>
+          <span class="tag">RAMS</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-num">/ 02</div>
+        <h3>Office-based <em>technical support</em></h3>
+        <p>
+          Day-to-day technical advice for your project team — specification
+          queries, resin and liner selection, troubleshooting and programme
+          input. Expert support, available when you need it.
+        </p>
+        <div class="tags">
+          <span class="tag">Specifications</span>
+          <span class="tag">Troubleshooting</span>
+          <span class="tag">Programme advice</span>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-num">/ 03</div>
+        <h3>On-site <em>attendance</em></h3>
+        <p>
+          When installations get complex — large diameters, difficult access,
+          mixed materials, awkward configurations — we attend site and work
+          alongside your installation crew throughout the job.
+        </p>
+        <div class="tags">
+          <span class="tag">Complex installs</span>
+          <span class="tag">Site attendance</span>
+          <span class="tag">Quality checks</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UV REVEAL -->
+  <section class="uv-reveal" id="uv">
+    <div class="uv-reveal-inner">
+      <div class="section-label" style="justify-content:center;display:flex;">
+        <span class="num">03 /</span> Signature technology
+      </div>
+      <h2 class="giant">
+        UV Cured
+        <em>In Place</em>
+      </h2>
+      <p class="caption">
+        A resin-impregnated liner is drawn into the existing pipe and pressed
+        against the host walls. A train of UV lamps then travels through the
+        liner, curing the resin into a structural pipe within a pipe — no
+        excavation required, and the network stays in service.
+      </p>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Cure speed</div>
+          <div class="v">0.5–2.0 m/min</div>
+        </div>
+        <div class="spec">
+          <div class="k">Liner thickness</div>
+          <div class="v">3 – 12 mm</div>
+        </div>
+        <div class="spec">
+          <div class="k">Diameter range</div>
+          <div class="v">DN150 – DN2000</div>
+        </div>
+        <div class="spec">
+          <div class="k">Resin system</div>
+          <div class="v">Vinyl ester / PE</div>
+        </div>
+      </div>
+      <div class="also-supports">
+        <div class="as-label">Also supports</div>
+        <div class="as-text">
+          <strong>Hot cure lining</strong> (hot water inversion) and other CIPP technologies — whatever the specification calls for, we can support the design and installation.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPROACH -->
+  <section class="approach" id="approach">
+    <div class="approach-inner">
+      <div class="section-label"><span class="num">04 /</span> How we work</div>
+      <h2>Simple, focused, <em>built around you</em>.</h2>
+      <div class="approach-list">
+        <div class="approach-item">
+          <div class="ai-num">/ 01</div>
+          <div class="ai-title">We work <em>with</em> your team</div>
+          <div class="ai-body">
+            We don't take over the job — we integrate into your existing project
+            team and support the work you're already doing. No parallel process,
+            no extra layers of management.
+          </div>
+        </div>
+        <div class="approach-item">
+          <div class="ai-num">/ 02</div>
+          <div class="ai-title">Office <em>and</em> on-site</div>
+          <div class="ai-body">
+            Most of our support is office-based: planning, specifications, design
+            and technical advice. When the install gets complex, we come to site
+            and work alongside your crew.
+          </div>
+        </div>
+        <div class="approach-item">
+          <div class="ai-num">/ 03</div>
+          <div class="ai-title">CIPP is <em>our specialism</em></div>
+          <div class="ai-body">
+            We focus on cured-in-place pipe lining — not every rehabilitation
+            method out there. Deep expertise in one area, applied to your project.
+          </div>
+        </div>
+        <div class="approach-item">
+          <div class="ai-num">/ 04</div>
+          <div class="ai-title">Built around the <em>contractor</em></div>
+          <div class="ai-body">
+            Our service flexes to your way of working — your programme, your
+            document control, your team. The job is yours; we adapt to fit it.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="contact-inner">
+      <div class="section-label"><span class="num">05 /</span> Get in touch</div>
+      <div class="contact-grid">
+        <div>
+          <h2>Talk to us about your next <em>CIPP project</em>.</h2>
+          <p class="lead">
+            Whether you're planning a complex installation, need office-based
+            technical advice, or want a CIPP specialist on site for a critical
+            job — get in touch.
+          </p>
+        </div>
+        <div class="director-card">
+          <div class="role">Director</div>
+          <div class="name">Dean Verity</div>
+          <div class="divider"></div>
+          <a class="contact-row" href="tel:07495274417">
+            <div class="icon">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div>
+              <span class="label">Call direct</span>
+              <span class="value">07495 274 417</span>
+            </div>
+          </a>
+          <a class="contact-row" href="mailto:dean.verity@flowcoresolutionsltd.com">
+            <div class="icon">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <span class="label">Email</span>
+              <span class="value">dean.verity@flowcoresolutionsltd.com</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div>©️ 2026 FlowCore Technical Solutions Ltd</div>
+    <div class="mark">CIPP Lining Specialists</div>
+    <div>Registered in England & Wales</div>
+  </div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ====== SETUP ======
+const canvas = document.getElementById('pipe-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: false,
+  powerPreference: 'high-performance'
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x05122B, 1);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x140d2a, 0.045);
+
+const camera = new THREE.PerspectiveCamera(
+  70,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  200
+);
+
+// ====== PIPE CURVE ======
+// Gentle undulation to give a sense of descent
+const curvePoints = [];
+const TOTAL_LEN = 200;
+for (let i = 0; i <= 80; i++) {
+  const t = i / 80;
+  const x = Math.sin(t * Math.PI * 2.2) * 1.8 + Math.sin(t * Math.PI * 6) * 0.4;
+  const y = -t * 6 + Math.cos(t * Math.PI * 3) * 0.8;
+  const z = -t * TOTAL_LEN;
+  curvePoints.push(new THREE.Vector3(x, y, z));
+}
+const curve = new THREE.CatmullRomCurve3(curvePoints);
+curve.closed = false;
+
+// ====== PIPE TEXTURE (procedural canvas) ======
+function makePipeTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 512;
+  const ctx = c.getContext('2d');
+
+  // Base dark concrete
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0, '#1a1530');
+  grad.addColorStop(0.5, '#241f3a');
+  grad.addColorStop(1, '#1a1530');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Horizontal wear bands
+  for (let i = 0; i < 14; i++) {
+    const y = (i / 14) * 512 + Math.sin(i) * 10;
+    ctx.strokeStyle = `rgba(70,50,110,${0.12 + Math.random() * 0.18})`;
+    ctx.lineWidth = 1 + Math.random() * 2;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    for (let x = 0; x < 1024; x += 40) {
+      ctx.lineTo(x, y + Math.sin(x * 0.02 + i) * 3);
+    }
+    ctx.stroke();
+  }
+
+  // Grime splotches
+  for (let i = 0; i < 180; i++) {
+    const x = Math.random() * 1024;
+    const y = Math.random() * 512;
+    const r = Math.random() * 40 + 10;
+    const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, `rgba(${30 + Math.random()*40}, ${20 + Math.random()*30}, ${50 + Math.random()*40}, 0.35)`);
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rg;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Fine noise
+  const imgData = ctx.getImageData(0, 0, 1024, 512);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 30;
+    d[i] = Math.max(0, Math.min(255, d[i] + n));
+    d[i+1] = Math.max(0, Math.min(255, d[i+1] + n * 0.8));
+    d[i+2] = Math.max(0, Math.min(255, d[i+2] + n * 1.1));
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Rivets / weld seams
+  for (let y = 0; y < 512; y += 64) {
+    ctx.strokeStyle = 'rgba(140, 100, 200, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y); ctx.lineTo(1024, y);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 1);
+  tex.anisotropy = 8;
+  return tex;
+}
+
+// Liner texture — brighter, smoother, suggests cured CIPP
+function makeLinerTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 512;
+  const ctx = c.getContext('2d');
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0, '#3a2960');
+  grad.addColorStop(0.5, '#4a3578');
+  grad.addColorStop(1, '#3a2960');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Fibre weave pattern
+  for (let x = 0; x < 1024; x += 3) {
+    ctx.strokeStyle = `rgba(160, 120, 220, ${0.06 + Math.random()*0.1})`;
+    ctx.beginPath();
+    ctx.moveTo(x, 0); ctx.lineTo(x + 20, 512);
+    ctx.stroke();
+  }
+  for (let x = 0; x < 1024; x += 3) {
+    ctx.strokeStyle = `rgba(200, 160, 250, ${0.04 + Math.random()*0.08})`;
+    ctx.beginPath();
+    ctx.moveTo(x, 512); ctx.lineTo(x + 20, 0);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(10, 1);
+  tex.anisotropy = 8;
+  return tex;
+}
+
+const pipeTexture = makePipeTexture();
+const linerTexture = makeLinerTexture();
+
+// ====== TUBE GEOMETRY ======
+const PIPE_RADIUS = 3;
+const tubeGeom = new THREE.TubeGeometry(curve, 400, PIPE_RADIUS, 32, false);
+// Flip normals (we're inside)
+const tubeMat = new THREE.MeshStandardMaterial({
+  map: pipeTexture,
+  side: THREE.BackSide,
+  roughness: 0.95,
+  metalness: 0.05,
+  color: 0xffffff
+});
+const tube = new THREE.Mesh(tubeGeom, tubeMat);
+scene.add(tube);
+
+// Secondary liner tube (slightly smaller radius, renders in UV section)
+// We'll fade it in based on camera progress
+const linerGeom = new THREE.TubeGeometry(curve, 400, PIPE_RADIUS * 0.95, 32, false);
+const linerMat = new THREE.MeshStandardMaterial({
+  map: linerTexture,
+  side: THREE.BackSide,
+  roughness: 0.55,
+  metalness: 0.25,
+  transparent: true,
+  opacity: 0,
+  emissive: 0x2a1a55,
+  emissiveIntensity: 0.3
+});
+const linerMesh = new THREE.Mesh(linerGeom, linerMat);
+scene.add(linerMesh);
+
+// ====== UV LIGHT TRAIN ======
+// Positioned along the curve at a specific t value
+function makeUVTrain() {
+  const group = new THREE.Group();
+
+  // Central hub — chromed cylinder
+  const hubGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 16);
+  hubGeom.rotateX(Math.PI / 2);
+  const hubMat = new THREE.MeshStandardMaterial({
+    color: 0xdddddd,
+    metalness: 0.95,
+    roughness: 0.15,
+    envMapIntensity: 1.5
+  });
+  const hub = new THREE.Mesh(hubGeom, hubMat);
+  group.add(hub);
+
+  // End caps
+  const capGeom = new THREE.SphereGeometry(0.28, 16, 16);
+  const capFront = new THREE.Mesh(capGeom, hubMat);
+  capFront.position.z = 0.4;
+  group.add(capFront);
+  const capBack = new THREE.Mesh(capGeom, hubMat);
+  capBack.position.z = -0.4;
+  group.add(capBack);
+
+  // Central front LED array
+  const ledGeom = new THREE.CircleGeometry(0.18, 24);
+  const ledMat = new THREE.MeshBasicMaterial({ color: 0xeeddff });
+  const ledArray = new THREE.Mesh(ledGeom, ledMat);
+  ledArray.position.z = 0.42;
+  group.add(ledArray);
+
+  // Central intense forward light
+  const frontLight = new THREE.PointLight(0xd5b8ff, 3, 20, 2);
+  frontLight.position.z = 0.5;
+  group.add(frontLight);
+
+  // 6 spokes radiating out with UV lamp modules at end
+  const ARMS = 6;
+  const ARM_LEN = 1.4;
+  const armGeom = new THREE.CylinderGeometry(0.06, 0.06, ARM_LEN, 8);
+  const armMat = new THREE.MeshStandardMaterial({
+    color: 0xbbbbbb,
+    metalness: 0.85,
+    roughness: 0.25
+  });
+
+  const lampGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.9, 16);
+  const lampMat = new THREE.MeshStandardMaterial({
+    color: 0xe8e8f0,
+    metalness: 0.7,
+    roughness: 0.3
+  });
+
+  const bulbGeom = new THREE.CylinderGeometry(0.13, 0.13, 0.85, 16);
+  const bulbMat = new THREE.MeshBasicMaterial({
+    color: 0xe0c8ff,
+    transparent: true,
+    opacity: 0.95
+  });
+
+  for (let i = 0; i < ARMS; i++) {
+    const angle = (i / ARMS) * Math.PI * 2;
+    const cx = Math.cos(angle);
+    const cy = Math.sin(angle);
+
+    // Arm
+    const arm = new THREE.Mesh(armGeom, armMat);
+    arm.position.set(cx * ARM_LEN * 0.5, cy * ARM_LEN * 0.5, 0);
+    arm.rotation.z = angle - Math.PI / 2;
+    group.add(arm);
+
+    // Lamp body
+    const lamp = new THREE.Mesh(lampGeom, lampMat);
+    lamp.position.set(cx * ARM_LEN, cy * ARM_LEN, 0);
+    lamp.rotation.x = Math.PI / 2;
+    // also rotate lamp around z to align with radius
+    group.add(lamp);
+
+    // Bulb (glowing tube inside lamp)
+    const bulb = new THREE.Mesh(bulbGeom, bulbMat);
+    bulb.position.set(cx * ARM_LEN, cy * ARM_LEN, 0);
+    bulb.rotation.x = Math.PI / 2;
+    group.add(bulb);
+
+    // Rollers on outer end of arm
+    const rollerGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.22, 12);
+    const rollerMat = new THREE.MeshStandardMaterial({
+      color: 0xf2eee4,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+    const rollerFront = new THREE.Mesh(rollerGeom, rollerMat);
+    rollerFront.position.set(cx * (ARM_LEN + 0.15), cy * (ARM_LEN + 0.15), 0.42);
+    rollerFront.rotation.z = angle;
+    group.add(rollerFront);
+
+    const rollerBack = new THREE.Mesh(rollerGeom, rollerMat);
+    rollerBack.position.set(cx * (ARM_LEN + 0.15), cy * (ARM_LEN + 0.15), -0.42);
+    rollerBack.rotation.z = angle;
+    group.add(rollerBack);
+
+    // Point light at each lamp — strong UV glow
+    const pLight = new THREE.PointLight(0xb388f5, 1.4, 8, 2);
+    pLight.position.set(cx * ARM_LEN, cy * ARM_LEN, 0);
+    group.add(pLight);
+  }
+
+  // Big overall UV glow at center
+  const centralGlow = new THREE.PointLight(0xc8b0ff, 4, 15, 1.8);
+  group.add(centralGlow);
+
+  // Cable trailing behind (suggestion only, small segment)
+  const cableGeom = new THREE.CylinderGeometry(0.04, 0.04, 3, 8);
+  const cableMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.8
+  });
+  const cable = new THREE.Mesh(cableGeom, cableMat);
+  cable.rotation.x = Math.PI / 2;
+  cable.position.z = -1.8;
+  group.add(cable);
+
+  return group;
+}
+
+const uvTrain = makeUVTrain();
+scene.add(uvTrain);
+
+// Position UV train at ~60% of pipe
+function positionUVTrain(t) {
+  const pos = curve.getPointAt(t);
+  const tan = curve.getTangentAt(t);
+  uvTrain.position.copy(pos);
+  // Orient along tangent
+  const lookTarget = pos.clone().add(tan);
+  uvTrain.lookAt(lookTarget);
+}
+const UV_T = 0.62;
+positionUVTrain(UV_T);
+
+// ====== SECONDARY UV LAMP GLOWS ALONG PIPE ======
+// Add some static ambient UV point lights along the pipe for drama
+const ambientUVLights = [];
+const ambientPositions = [0.15, 0.28, 0.42, 0.78, 0.9];
+ambientPositions.forEach((t) => {
+  const p = curve.getPointAt(t);
+  const light = new THREE.PointLight(0x9b5de5, 0.6, 12, 2);
+  light.position.copy(p);
+  scene.add(light);
+  ambientUVLights.push({ light, baseT: t });
+});
+
+// Ambient scene light
+const hemi = new THREE.HemisphereLight(0x221a44, 0x080616, 0.35);
+scene.add(hemi);
+
+// Key rim light behind camera (simulates following crew head-torch)
+const rearLight = new THREE.PointLight(0x8a6eff, 0.8, 10, 1.5);
+scene.add(rearLight);
+
+// ====== DUST PARTICLES ======
+const particleCount = 300;
+const particleGeom = new THREE.BufferGeometry();
+const particlePositions = new Float32Array(particleCount * 3);
+for (let i = 0; i < particleCount; i++) {
+  // random position inside tube volume (approximate)
+  const t = Math.random();
+  const p = curve.getPointAt(t);
+  const angle = Math.random() * Math.PI * 2;
+  const r = Math.random() * (PIPE_RADIUS - 0.3);
+  particlePositions[i * 3] = p.x + Math.cos(angle) * r;
+  particlePositions[i * 3 + 1] = p.y + Math.sin(angle) * r;
+  particlePositions[i * 3 + 2] = p.z;
+}
+particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+const particleMat = new THREE.PointsMaterial({
+  color: 0xc8b0ff,
+  size: 0.04,
+  transparent: true,
+  opacity: 0.45,
+  sizeAttenuation: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending
+});
+const particles = new THREE.Points(particleGeom, particleMat);
+scene.add(particles);
+
+// ====== SCROLL HANDLING ======
+let scrollProgress = 0;
+let targetProgress = 0;
+function onScroll() {
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  targetProgress = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// ====== RESIZE ======
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ====== ANIMATION LOOP ======
+const clock = new THREE.Clock();
+const tmpVec = new THREE.Vector3();
+const tmpVec2 = new THREE.Vector3();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const elapsed = clock.elapsedTime;
+
+  // Smooth scroll progress
+  scrollProgress += (targetProgress - scrollProgress) * 0.08;
+
+  // Camera travels along curve — offset ahead so journey feels natural
+  // Range: from t=0.02 to t=0.92 over the full scroll
+  const camT = 0.02 + scrollProgress * 0.88;
+  const camPos = curve.getPointAt(Math.min(0.99, camT));
+  const camTan = curve.getTangentAt(Math.min(0.99, camT));
+
+  // Slight head bob for organic feel
+  const bobY = Math.sin(elapsed * 1.2) * 0.05;
+  const bobX = Math.cos(elapsed * 0.9) * 0.03;
+  camera.position.copy(camPos);
+  camera.position.x += bobX;
+  camera.position.y += bobY;
+
+  // Look ahead along the curve
+  const lookT = Math.min(0.995, camT + 0.02);
+  const lookPoint = curve.getPointAt(lookT);
+  camera.lookAt(lookPoint);
+
+  // Rear light follows behind camera
+  const rearT = Math.max(0, camT - 0.01);
+  rearLight.position.copy(curve.getPointAt(rearT));
+
+  // Rotate UV train slowly (as light heads rotate during cure)
+  uvTrain.rotation.z += dt * 0.4;
+
+  // Fade liner in after we pass the UV train
+  // Before t=0.62 -> raw pipe, After -> liner visible
+  const linerFade = THREE.MathUtils.smoothstep(camT, UV_T - 0.02, UV_T + 0.08);
+  linerMat.opacity = linerFade * 0.9;
+  // Also fade raw pipe out gradually in cured section so liner dominates
+  tubeMat.opacity = 1 - linerFade * 0.3;
+  tubeMat.transparent = true;
+
+  // Ambient lights pulse subtly
+  ambientUVLights.forEach((o, i) => {
+    const phase = elapsed * 0.8 + i * 1.3;
+    o.light.intensity = 0.45 + Math.sin(phase) * 0.15;
+  });
+
+  // UV train's lamps flicker slightly to feel alive
+  const flicker = 1 + Math.sin(elapsed * 30) * 0.03 + Math.sin(elapsed * 17) * 0.02;
+  uvTrain.children.forEach(child => {
+    if (child.isPointLight) {
+      child.intensity = (child.userData.baseIntensity || child.intensity) * flicker;
+      if (!child.userData.baseIntensity) child.userData.baseIntensity = child.intensity / flicker;
+    }
+  });
+
+  // Particles drift forward (towards camera origin — simulates flow)
+  const pPositions = particleGeom.attributes.position.array;
+  for (let i = 0; i < particleCount; i++) {
+    pPositions[i * 3 + 2] += dt * 0.6;
+    // Recycle particles that pass behind camera
+    const worldZ = pPositions[i * 3 + 2];
+    if (worldZ > camera.position.z + 3) {
+      // reposition far ahead
+      const t = Math.min(0.98, camT + 0.3 + Math.random() * 0.4);
+      const p = curve.getPointAt(t);
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * (PIPE_RADIUS - 0.4);
+      pPositions[i * 3] = p.x + Math.cos(angle) * r;
+      pPositions[i * 3 + 1] = p.y + Math.sin(angle) * r;
+      pPositions[i * 3 + 2] = p.z;
+    }
+  }
+  particleGeom.attributes.position.needsUpdate = true;
+
+  // Adjust fog density subtly — thicker around UV train for drama
+  const distToUV = Math.abs(camT - UV_T);
+  scene.fog.density = 0.045 + Math.max(0, 0.02 - distToUV * 0.1);
+
+  renderer.render(scene, camera);
+
+  // Update depth meter + progress bar
+  const chainage = (camT * TOTAL_LEN).toFixed(1);
+  depthEl.textContent = chainage + ' m';
+  progFill.style.height = (scrollProgress * 100) + '%';
+}
+
+const depthEl = document.getElementById('depthValue');
+const progFill = document.getElementById('progFill');
+
+animate();
+</script>
+
+</body>
+</html>
